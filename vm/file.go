@@ -157,7 +157,8 @@ func builtinFileClassMethods() []*BuiltinMethodObject {
 					var perm os.FileMode
 
 					if len(args) < 1 {
-						return t.vm.InitErrorObject(errors.InternalError, sourceLine, "Expect at least a filename to open file")
+						err := t.vm.InitErrorObject(errors.InternalError, sourceLine, "Expect at least a filename to open file")
+						return t.vm.InitArrayObject([]Object{nil, err})
 					}
 
 					if len(args) >= 1 {
@@ -170,11 +171,17 @@ func builtinFileClassMethods() []*BuiltinMethodObject {
 							md, ok := fileModeTable[m]
 
 							if !ok {
-								return t.vm.InitErrorObject(errors.InternalError, sourceLine, "Unknown file mode: %s", m)
+								err := t.vm.InitErrorObject(errors.InternalError, sourceLine, "Unknown file mode: %s", m)
+								return t.vm.InitArrayObject([]Object{nil, err})
 							}
 
 							if md == syscall.O_RDWR || md == syscall.O_WRONLY {
-								os.Create(fn)
+								f, ferr := os.Create(fn)
+								if ferr != nil {
+									err := t.vm.InitErrorObject(errors.InternalError, sourceLine, ferr.Error())
+									return t.vm.InitArrayObject([]Object{nil, err})
+								}
+								f.Close()
 							}
 
 							mode = md
@@ -190,13 +197,12 @@ func builtinFileClassMethods() []*BuiltinMethodObject {
 					f, err := os.OpenFile(fn, mode, perm)
 
 					if err != nil {
-						return t.vm.InitErrorObject(errors.InternalError, sourceLine, err.Error())
+						return t.vm.InitArrayObject([]Object{nil, t.vm.InitErrorObject(errors.InternalError, sourceLine, err.Error())})
 					}
 
 					// TODO: Refactor this class retrieval mess
 					fileObj := &FileObject{File: f, baseObj: &baseObj{class: t.vm.topLevelClass(classes.FileClass)}}
-
-					return fileObj
+					return t.vm.InitArrayObject([]Object{fileObj, nil})
 				}
 			},
 		},

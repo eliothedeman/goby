@@ -1,11 +1,18 @@
+require "option"
+
 class File
   def self.open(filename, mode = "r", perm = 0755)
-    file = new(filename, mode, perm)
+    file, err = new(filename, mode, perm)
+
+    if err != nil 
+      return Option.new(:err, err)
+    end
 
     if block_given?
       yield(file)
     end
 
     file.close
+    return Option.new()
   end
 end

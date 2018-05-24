@@ -1,0 +1,37 @@
+require "file"
+require "spec"
+
+Spec.describe File do
+  describe "#open" do
+    describe "file doens't exist" do
+      opened = false
+      has_error = false
+      File.open("/tmp/test.txt") do |f|
+        opened = true
+      end.err do |err|
+        has_error = true
+      end
+
+      it "returns an error" do
+        expect(opened) to eq(false)
+        expect(has_error) to eq(true)
+      end
+    end
+    describe "file exists" do
+      opened = false
+      has_error = false
+      File.open("/tmp/test.txt") do |f|
+        opened = true
+      end.err do |err|
+        has_error = true
+      end
+
+      it "returns an error" do
+        expect(opened) to eq(false)
+        expect(has_error) to eq(true)
+      end
+    end
+  end
+
+end
+

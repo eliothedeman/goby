@@ -12,7 +12,10 @@
         {
             "label": "rebuild",
             "type": "shell",
-            "command": "go install github.com/goby-lang/goby"
+            "command": "go install github.com/goby-lang/goby",
+            "problemMatcher": [
+                "$go"
+            ]
         }
     ]
 }
