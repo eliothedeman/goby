@@ -14,6 +14,43 @@ type Stack struct {
 	sync.RWMutex
 }
 
+// StackFrame is a segment of a stack. Each method call will start a new stack frame.
+type StackFrame struct {
+	stack *Stack
+	nargs int
+
+	pushed bool
+}
+
+// Push an element into the frame
+func (f *StackFrame) Push(p *Pointer) {
+	f.stack.Push(p)
+	f.pushed = true
+}
+
+// Pop an element from the stack, if it exists
+func (f *StackFrame) Pop() *Pointer {
+	if f.NArgs() <= 0 {
+		return nil
+	}
+
+	return f.stack.Pop()
+}
+
+// Peek at an element of the frame
+func (f *StackFrame) Peek(i int) *Pointer {
+	var p *Pointer
+	if f.NArgs()-1 < i {
+		p = f.stack.Peek(f.stack.pointer - i)
+	}
+	return p
+}
+
+// NArgs returns the current size of the frame
+func (f *StackFrame) NArgs() int {
+	return f.nargs
+}
+
 // Set a value at a given index in the stack. TODO: Maybe we should be checking for size before we do this.
 func (s *Stack) Set(index int, pointer *Pointer) {
 	s.Lock()
@@ -57,6 +94,15 @@ func (s *Stack) Pop() *Pointer {
 	s.data[s.pointer] = nil
 	s.Unlock()
 	return v
+}
+
+// Peek at an element in the stack
+func (s *Stack) Peek(i int) *Pointer {
+	var r *Pointer
+	s.RLock()
+	r = s.data[i]
+	s.RUnlock()
+	return r
 }
 
 func (s *Stack) top() *Pointer {

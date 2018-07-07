@@ -28,6 +28,20 @@ type Thread struct {
 	vm *VM
 }
 
+// CallFrame will call a function with a new stack frame.
+func (t *Thread) CallFrame(nargs int, f func(*StackFrame)) Object {
+	x := StackFrame{
+		nargs: nargs,
+		stack: &t.Stack,
+	}
+	f(&x)
+	out := x.Pop()
+	if out == nil {
+		return NULL
+	}
+	return out.Target
+}
+
 func (t *Thread) VM() *VM {
 	return t.vm
 }
